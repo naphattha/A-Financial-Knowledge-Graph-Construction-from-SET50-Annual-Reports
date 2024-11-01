@@ -1,0 +1,93 @@
+Create environment AWS Cloud9 New EC2 instance: t3.small environment : Amazon Linux 2023 Network settings: SSH
+
+In cloud9
+1.	Update the System 
+sudo yum update -y
+2.	Install Python 3 and pip
+sudo yum install python3 -y
+sudo yum install python3-pip -y
+
+MySQL
+3.	Install MySQL Client
+pip3 install mysql-connector-python
+4.	Install MariaDB (MySQL-compatible)
+sudo yum install -y mariadb105-server
+5.	Change code in mysql_.py line14 change local to local of FilteredFinancialData.json
+6.	Change code in mysql_.py line123 change local to local of FilteredEODData.json
+7.	Start the MariaDB Service
+sudo systemctl start mariadb
+8.	Enable MariaDB to Start on Boot
+sudo systemctl enable mariadb
+9.	Secure the MariaDB Installation (set the root password, remove anonymous users, disable remote root login and Remove the test database and reload privilege tables.)
+sudo mysql_secure_installation
+10.	Change code in mysql_.py line8 change password to your new password
+11.	Change code in secrets.toml line10 change password to your new password
+12.	Log In to MariaDB
+sudo mysql
+13.	Run code mysql_.py
+
+Neo4j 
+14.	Change code in neo4j_.py line65 change local to local of FilteredFinancialData.json
+15.	Change code in neo4j_.py line68 change local to local of FilteredEODData.json
+16.	install OpenJDK
+sudo dnf install java-21-amazon-corretto
+17.	prepare for neo4j(Run these commands one by one)
+sudo rpm --import https://debian.neo4j.com/neotechnology.gpg.key
+sudo touch /etc/yum.repos.d/neo4j.repo
+sudo nano /etc/yum.repos.d/neo4j.repo
+18.	put this content into neo4j.repo file (then save it (ctrl + o) + (Enter) and exit (ctrl + x) + (Enter))
+[neo4j]
+name=Neo4j RPM Repository
+baseurl=https://yum.neo4j.com/stable/5
+enabled=1
+gpgcheck=1
+19.	install Neo4j
+sudo NEO4J_ACCEPT_LICENSE_AGREEMENT=yes yum install neo4j-5.12.0
+20.	Open neo4j.conf file with nano editor
+21.	Locate this content and add 0.0.0.0 for every *.listen_address line before port (then save it (ctrl + o) + (Enter) and exit (ctrl + x) + (Enter))
+ 
+22.	Neo4j plugin installation
+cd /var/lib/neo4j/plugins 
+sudo wget https://github.com/neo4j/apoc/releases/download/5.12.0/apoc-5.12.0-core.jar
+23.	Running Neo4j
+sudo systemctl start neo4j
+24.	set the neo4j password (type your new password)
+cypher-shell -u neo4j -p neo4j
+25.	Change code in neo4j_.py line60 change password to your new password
+26.	Change code in secrets.toml line6 change password to your new password
+27.	Run code neo4j_.py (it will taking a long time)
+
+Chatbot in mysql
+28.	install streamlit
+pip install streamlit
+pip install --upgrade streamlit
+29.	install llama-index
+pip install llama-index
+pip install --upgrade llama-index
+30.	install llama-index-llms-groq
+pip install llama-index-llms-groq
+31.	install llama index embeddings huggingface (up Volumes to 40 Gib if need)
+pip install llama-index-embeddings-huggingface
+32.	install langchain-groq
+pip install langchain-groq
+33.	install langchain_community
+pip install langchain_community
+34.	allows traffic on port 8501
+Go to your AWS EC2 Console > Instances.
+Select your EC2 instance.
+Under Security Groups, click the security group associated with the instance.
+Under Inbound rules, ensure you have a rule that allows traffic on port 8501 from your IP or 0.0.0.0/0 (for testing purposes, but be cautious as this opens it to all IPs).
+Add the rule like this:
+Type: Custom TCP 
+Rule Port Range: 8501 
+Source: 0.0.0.0/0 (or your specific IP)
+35.	run chatbot (mysql)
+streamlit run /home/ec2-user/environment/Naphattha/llm-chatbot-python_mysql/bot.py
+36.	run chatbot (neo4j)
+streamlit run /home/ec2-user/environment/Naphattha/llm-chatbot-python/bot.py
+
+
+
+
+ref for step 16-18: https://1pxone.medium.com/deploying-neo4j-on-aws-ec2-instance-apoc-plugin-installation-884deaeb4765
+(รอปรับคำเพิ่มหลังเขียนขั้นตอนเสร็จ)
