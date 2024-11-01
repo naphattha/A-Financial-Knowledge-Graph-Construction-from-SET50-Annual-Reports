@@ -1,0 +1,16 @@
+# Database connectors
+mysql-connector-python
+mariadb
+neo4j
+
+# Web interface for chatbot
+streamlit
+
+# LLM indexing and embeddings
+llama-index
+llama-index-llms-groq
+llama-index-embeddings-huggingface
+
+# LLM and chatbot interaction
+langchain-groq
+langchain_community
