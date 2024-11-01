@@ -1,19 +1,21 @@
-= Build an Neo4j-backed Chatbot using Python
+# llm-chatbot-python-mysql
 
-This repository accompanies the link:https://graphacademy.neo4j.com/courses/llm-chatbot-python/?ref=github[Build an Neo4j-backed Chatbot using Python^] course on link:https://graphacademy.neo4j.com/?ref=github[Neo4j GraphAcademy^].
+This repository contains code for integrating a chatbot with a MySQL database. The project utilizes MySQL to manage and retrieve data effectively, enabling users to interact with financial information through a conversational interface.
 
-For a complete walkthrough of this repository, link:https://graphacademy.neo4j.com/courses/llm-chatbot-python/?ref=github[enrol now^].
-
-
-== Running the application
+## Installation
 
 To run the application, you must install the libraries listed in `requirements.txt`.
 
-[source,sh]
+```bash
 pip install -r requirements.txt
+```
 
+## Running the Application
 
-Then run the `streamlit run` command to start the app on link:http://localhost:8501/[http://localhost:8501/^].
+To start the app, use the following command:
 
-[source,sh]
+```bash
 streamlit run bot.py
+```
+
+You can access the application at http://localhost:8501/.
