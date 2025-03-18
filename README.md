@@ -1,6 +1,6 @@
 # A Financial Knowledge Graph Construction from SET50 Annual Reports
 
-This project provides a chatbot interface to query financial data for SET50 companies. It compares performance between two databases, Neo4j (graph-based) and MySQL (relational), in handling complex financial queries. The project leverages a Large Language Model (LLM) for natural language interpretation.
+This project will involve developing a chatbot that can query a database (like MySQL or Neo4j) and retrieve relevant financial data based on user input. The chatbot would likely leverage natural language processing (NLP) to understand user queries and interact with the database to provide accurate and efficient responses.
 
 
 Project Structure
