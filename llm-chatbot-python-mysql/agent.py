@@ -117,76 +117,20 @@ agent_executor = AgentExecutor(
     handle_parsing_errors=True  # Enable error handling for parsing issues
 )
 
-import time  # Import the time module
 
-# # Function to generate response
-# def generate_response(user_input):
-#     try:
-#         # Start the timer
-#         start_time = time.time()
-
-#         # Call the agent executor with appropriate arguments
-#         response = agent_executor.invoke({
-#             "input": user_input,
-#             "chat_history": st.session_state.get("chat_history", []),
-#             "agent_scratchpad": ""
-#         })
-#         # End the timer
-#         end_time = time.time()
-        
-#         # Calculate the time taken
-#         time_taken = end_time - start_time
-
-#         # Print the response and time taken for debugging
-#         print(f"Agent response: {response}")
-#         print(f"Time taken: {time_taken:.5f} seconds")
-
-#         # Ensure 'output' key is handled
-#         return response.get('output', 'No output found')
-#     except Exception as e:
-#         print(f"Error Agent generating response: {e}")
-#         return f"Error Agent : Unable to generate response due to {str(e)}"
-    
-import tiktoken
-import time
-
-# เลือกโทเค็นไลเซอร์ที่ตรงกับโมเดลของคุณ
-encoding = tiktoken.get_encoding("cl100k_base")  # เปลี่ยนตามโมเดลที่ใช้
-
-def count_tokens(text):
-    return len(encoding.encode(text))
-
-def generate_response(user_input):
+def generate_response(question):
     try:
-        # นับโทเค็นในคำถามที่ผู้ใช้ป้อน
-        input_token_count = count_tokens(user_input)
-        print(f"Input token count: {input_token_count}")
-
-        # เริ่มจับเวลาตอบสนอง
-        start_time = time.time()
-
-        # เรียก agent เพื่อสร้างคำตอบ
-        response = agent_executor.invoke({
-            "input": user_input,
-            "chat_history": st.session_state.get("chat_history", []),
-            "agent_scratchpad": ""
-        })
-
-        # จับเวลาสิ้นสุด
-        end_time = time.time()
-        time_taken = end_time - start_time
-
-        # นับโทเค็นในคำตอบที่ได้
-        output_text = response.get('output', 'No output found')
-        output_token_count = count_tokens(output_text)
-        print(f"Output token count: {output_token_count}")
-        print(f"Time taken: {time_taken:.5f} seconds")
-
-        # ส่งกลับคำตอบและจำนวนโทเค็นทั้งหมด
-        total_token_count = input_token_count + output_token_count
-        print(f"Total token count for the query: {total_token_count}")
-        return output_text
+        # เรียกใช้ mysql_qa_function เพื่อนำ SQL query และผลลัพธ์
+        df_results, sql_query = mysql_qa_function(question)
+        
+        # สร้างข้อความตอบกลับจากผลลัพธ์
+        if not df_results.empty:
+            response = df_results.to_string(index=False)
+        else:
+            response = "No data found for the query."
+        
+        return response, sql_query, df_results
 
     except Exception as e:
-        print(f"Error generating response: {e}")
-        return f"Error: Unable to generate response due to {str(e)}"
+        return f"Error: Unable to process the query due to {e}", None, None
+

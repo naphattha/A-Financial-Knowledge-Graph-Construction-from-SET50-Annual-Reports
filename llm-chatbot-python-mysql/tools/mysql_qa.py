@@ -2,14 +2,19 @@ import streamlit as st
 from llm import llm
 from db import database, db_url
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
+from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 from operator import itemgetter
 from langchain_core.prompts import PromptTemplate
 from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_community.tools.sql_database.tool import QuerySQLDataBaseTool
 from langchain.chains import create_sql_query_chain
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine, inspect, text
 import pandas as pd
+import logging
+
+# Configure logging to log to a file for debugging
+logging.basicConfig(filename='sql_query_logs.log', level=logging.DEBUG, 
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Construct the database URL
 MYSQL_HOST = st.secrets["MYSQL_HOST"]
@@ -27,23 +32,20 @@ engine = create_engine(db_url)
 database = SQLDatabase(engine)
 
 MYSQL_GENERATION_TEMPLATE = """
-You are an expert in MySQL who translates user questions into SQL queries to find answers about company data in the database.
-Translate the user's questions according to the database schema.
+You are an expert in MySQL who translates user input into SQL queries to find answers about company data in the database.
+Translate the user's input according to the database schema.
 Use only the types of relationships and properties that exist in the given schema. Do not use other types of relationships or properties that are not in the provided schema.
 
 Provide answers primarily in Thai, but some financial terms may remain in English. If you don't know the answer, respond with 'I don't know.'
 
 Fine Tuning:
-1.FilteredEODData: table for company financial statement data, available quarterly (de, ebitAccum, ebitQuarter, epsAccum, epsQuarter, financingCashFlow, fixedAssetTurnover, hasQuarter, hasYear, investingCashFlow, netProfitAccum, netProfitMarginAccum, netProfitMarginQuarter, netProfitQuarter, operatingCashFlow, paidupShareCapital, roa, roe, shareholderEquity, totalAssetTurnover, totalAssets, totalEquity, totalExpensesAccum, totalExpensesQuarter, totalLiabilities, totalRevenueAccum, totalRevenueQuarter)
-  financial_statements: tablefor daily company stock price data (average, close, high, low, open, prior, totalVolume), with the date information in the URI, e.g., uri: http://example.org/stock_value_CPALL_2024-01-25.
-2.for example "ขอข้อมูลopenของหุ้นBBLในวันที่2023-09-01" qurey = SELECT open FROM FilteredEODData WHERE symbol = 'BBL' AND date = '2023-09-01' LIMIT 1;
-3.Query:เขียนใน```Query```
+1.FilteredEODData: table for company financial statement data, available quarterly ...
+2.For example "ขอข้อมูลopenของหุ้นBBLในวันที่2023-09-01" query = SELECT open FROM FilteredEODData WHERE symbol = 'BBL' AND date = '2023-09-01' LIMIT 1;
+3.Query: เขียนใน```Query`
    
 Schema:
 {schema}
 
-Question:
-{question}
 
 Mysql Query:
 ```
@@ -53,19 +55,12 @@ Mysql Query:
 
 # Define the tools for SQL generation and execution
 execute_query = QuerySQLDataBaseTool(db=database)
-write_query = create_sql_query_chain(llm, database)
+
 # Create the prompt template
 sql_prompt = PromptTemplate.from_template(MYSQL_GENERATION_TEMPLATE)
+write_query = create_sql_query_chain(llm, database)
 
-# Define the LangChain QA chain
-mysql_qa = (
-    RunnablePassthrough.assign(query=write_query).assign(
-        result=itemgetter("query") | execute_query
-    )
-    | sql_prompt
-    | llm
-    | StrOutputParser()
-)
+
 
 # Function to fetch schema
 def get_schema(engine):
@@ -87,46 +82,68 @@ def format_schema(schema):
     return formatted
 
 # Fetch schema from the database
-schema1 = get_schema(engine)
+schema_dict = get_schema(engine)  # This returns a dictionary
+schema_ = format_schema(schema_dict)  # Convert dictionary to formatted string
 
+# Define the LangChain QA chain
+mysql_qa = (
+    RunnableLambda(lambda inputs: {
+        "query": write_query.invoke(inputs["query"]),
+        "schema": schema_
+    }).assign(
+        result=itemgetter("query") | execute_query
+    )
+    | sql_prompt
+    | llm
+    | StrOutputParser()
+)
 from sqlalchemy import text
 
-def mysql_qa_function(input_text):
-    schema_str = format_schema(schema1)  # Convert schema to string format
-    
+def mysql_qa_function(input):
     try:
-        # Generate the SQL query using the LangChain QA chain
-        generated_result = mysql_qa.invoke({
-            "question": input_text,
-            "schema": schema_str
-        })
+        # Debug input structure
+        logging.debug(f"Input question: {input}")
+        logging.debug(f"Schema passed to invoke: {schema_}")
+        if not isinstance(input, str):
+            raise ValueError("The input question must be a string.")
 
-        # Extract the SQL query from the generated result
-        query_start = generated_result.find("```\n") + 4  # Locate the start of the SQL query
-        query_end = generated_result.find("\n```", query_start)  # Locate the end of the SQL query
-        query = generated_result[query_start:query_end].strip()  # Extract the query string
-        
-        # Define the USE statement and the query
+        # Prepare input data with "question"
+        input_data = {
+            "question": input,  # Ensure compatibility with the tool
+            "schema": schema_
+        }
+        logging.debug(f"Data passed to mysql_qa: {input_data}")
+
+        # Generate SQL query
+        generated_result = mysql_qa.invoke(input_data)
+        logging.debug(f"Generated result: {generated_result}")
+
+        # Extract query
+        query_start = generated_result.find("```\n") + 4
+        query_end = generated_result.find("\n```", query_start)
+        query = generated_result[query_start:query_end].strip()
+
+        # Construct full query
         use_statement = "USE financials;"
         full_query = f"{use_statement}\n{query}"
-        print(f"Generated SQL Query: {full_query}")  # Debugging: Print the final SQL query
+        logging.debug(f"Executing query: {full_query}")
 
-        # Connect to the database and execute the query
+        # Execute the query
         with engine.connect() as connection:
-            # Execute the USE statement
             connection.execute(text(use_statement))
-            # Execute the main query
             result = connection.execute(text(query))
             data = result.fetchall()
 
-        # Convert the result to a pandas DataFrame for better readability
-        df = pd.DataFrame(data, columns=result.keys())
+        # Return DataFrame
+        if data:
+            return pd.DataFrame(data, columns=result.keys()), query
+        else:
+            return pd.DataFrame(), query
 
-        return df  # Return the DataFrame with the results
-    
     except Exception as e:
-        print(f"Error generating or executing the query: {e}")
-        return f"Error: Unable to generate or execute the query due to {str(e)}"
+        logging.error(f"Error during query generation or execution: {e}")
+        return pd.DataFrame(), ""
+
 
 # Export the tool
 __all__ = ["mysql_qa_function"]

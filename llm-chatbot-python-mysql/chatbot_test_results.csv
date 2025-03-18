@@ -1,0 +1,7 @@
+Question,Chain Interaction,SQL Query,Result Data,Chain Time (s),Response,RAM Usage (MB)
+บริษัท ADVANC มีสินทรัพย์รวมในไตรมาสที่ 1 ปี 2019 เท่าไหร่,Chain interaction not available,,,0.025197505950927734,"('No data found for the query.', '', Empty DataFrame
+Columns: []
+Index: [])",1.19140625
+บริษัท AOT มีหนี้สินรวมในไตรมาสที่ 1 ปี 2019 เท่าไหร่,Chain interaction not available,,,0.008525609970092773,"('No data found for the query.', '', Empty DataFrame
+Columns: []
+Index: [])",0.48828125
