@@ -12,9 +12,13 @@ Each directory includes the necessary files to run an independent instance of th
 
 # Prerequisites
 Before setting up the project, ensure you have the following installed:
+
 Python: Version 3.8 or higher.
+
 Neo4j: Community or Enterprise Edition.
+
 MySQL: Version 8.0 or higher.
+
 Node.js and npm: For frontend development.
 
 # Set Up Databases:
