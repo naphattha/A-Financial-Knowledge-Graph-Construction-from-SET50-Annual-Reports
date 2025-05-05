@@ -6,8 +6,8 @@ This project constructs a Financial Knowledge Graph (KG) from the annual reports
 
 ## Project Structure
 
- * llm-chatbot-python-neo4j: Contains code for Neo4j database integration.
- * llm-chatbot-python-mysql: Contains code for MySQL database integration.
+- `llm-chatbot-python-neo4j`: Contains code for Neo4j database integration.
+- `llm-chatbot-python-mysql`: Contains code for MySQL database integration.
 
 Each directory includes the necessary files to run an independent instance of the chatbot application.
 
