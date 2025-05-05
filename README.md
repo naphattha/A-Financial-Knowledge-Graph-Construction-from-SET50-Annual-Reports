@@ -20,5 +20,17 @@ Node.js and npm: For frontend development.
 # Set Up Databases:
 [A-Financial-Knowledge-Graph-SET50-Annual-Reports-database](https://github.com/naphattha/A-Financial-Knowledge-Graph-SET50-Annual-Reports-database)
 
+# Installation
+Clone the Repository:
+git clone https://github.com/naphattha/A-Financial-Knowledge-Graph-Construction-from-SET50-Annual-Reports.git
+cd A-Financial-Knowledge-Graph-Construction-from-SET50-Annual-Reports
+
+Set Up a Virtual Environment:
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+Install Dependencies:
+pip install -r requirements.txt
+
 # Run the Application:
 streamlit run app.py
