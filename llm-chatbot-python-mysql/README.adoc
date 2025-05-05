@@ -2,14 +2,6 @@
 
 This repository contains code for integrating a chatbot with a MySQL database. The project utilizes MySQL to manage and retrieve data effectively, enabling users to interact with financial information through a conversational interface.
 
-## Installation
-
-To run the application, you must install the libraries listed in `requirements.txt`.
-
-```bash
-pip install -r requirements.txt
-```
-
 ## Running the Application
 
 To start the app, use the following command:

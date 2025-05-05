@@ -2,14 +2,6 @@
 
 This repository contains code for integrating a chatbot with a Neo4j database. The project leverages Neo4j's graph database capabilities to provide efficient data retrieval and management for financial knowledge graphs.
 
-## Installation
-
-To run the application, you must install the libraries listed in `requirements.txt`.
-
-```bash
-pip install -r requirements.txt
-```
-
 ## Running the Application
 
 To start the app, use the following command:
